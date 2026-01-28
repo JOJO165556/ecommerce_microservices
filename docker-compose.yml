@@ -1,0 +1,25 @@
+services:
+  catalog:
+    build: ./catalog_service
+    command: python manage.py runserver 0.0.0.0:8001
+    ports:
+      - "8001:8001"
+
+  order:
+    build: ./order_service
+    command: python manage.py runserver 0.0.0.0:8002
+    ports:
+      - "8002:8002"
+    depends_on:
+      - catalog
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway  
+    command: uvicorn gateway:app --host 0.0.0.0 --port 8888
+    ports:
+      - "8888:8888"
+    depends_on:
+      - catalog
+      - order

@@ -1,0 +1,19 @@
+# Ignorer l'environnement virtuel local
+venv/
+.env
+
+# Ignorer les fichiers Python inutiles
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorer les bases de données locales pour que Docker en crée des neuves
+**/db.sqlite3
+
+# Ignorer Git
+.git
+.gitignore
+
+# Ignorer les fichiers système
+.DS_Store

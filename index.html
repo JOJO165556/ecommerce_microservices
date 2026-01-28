@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Micro-Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold text-blue-600 mb-6">Boutique Microservices</h1>
+
+        <div id="product-card" class="border p-4 rounded-lg mb-6">
+            <h2 id="p-name" class="text-xl font-semibold">Chargement du produit...</h2>
+            <p id="p-price" class="text-gray-600 text-2xl my-2">0.00 €</p>
+            <button onclick="acheter()" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                Acheter maintenant
+            </button>
+        </div>
+
+        <div class="bg-black text-green-400 p-4 rounded font-mono text-sm">
+            <p>> Statut système : <span id="status">En attente...</span></p>
+            <p id="log" class="mt-2 text-white"></p>
+        </div>
+    </div>
+
+    <script>
+        const GATEWAY = "http://127.0.0.1:8888";
+
+        // 1. Charger le produit (Catalog Service)
+        async function loadProduct() {
+            try {
+                const res = await fetch(`${GATEWAY}/catalogue/1`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                document.getElementById('p-name').innerText = data.name;
+                document.getElementById('p-price').innerText = data.price + " €";
+                document.getElementById('status').innerText = "Catalogue OK (Port 8001)";
+                document.getElementById('status').style.color = "#4ade80"; // Vert
+            } catch (error) {
+                document.getElementById('p-name').innerText = "Catalogue Indisponible";
+                document.getElementById('status').innerText = "⚠️ Erreur : Service Catalogue HS";
+                document.getElementById('status').style.color = "#f87171"; // Rouge
+            }
+        }
+
+        // 2. Créer une commande (Order Service)
+        async function acheter() {
+            const status = document.getElementById('status');
+            const log = document.getElementById('log');
+            
+            status.innerText = "Envoi de la commande...";
+            log.innerText = "";
+
+            try {
+                const res = await fetch(`${GATEWAY}/commander?product_id=1&quantity=1`, { method: 'POST' });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                
+                log.innerText = "Succès ! Commande #" + data.order_id + " créée (Port 8002)";
+                status.innerText = "Tout est OK";
+                status.style.color = "#4ade80";
+            } catch (e) {
+                log.innerText = "Impossible de joindre le service de commande.";
+                status.innerText = "⚠️ Mode dégradé : Service Achat HS";
+                status.style.color = "#fb923c"; // Orange
+            }
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>
