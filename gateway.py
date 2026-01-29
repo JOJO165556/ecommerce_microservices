@@ -16,18 +16,21 @@ ORDER_URL = "http://order:8002/api/orders/create/"
 
 @app.get("/catalogue/{item_id}")
 def get_product(item_id: int):
-    # La Gateway redirige vers le Catalogue
-    response = requests.get(f"{CATALOG_URL}{item_id}/")
-    if response.status_code == 200:
+    try:
+        response = requests.get(f"{CATALOG_URL}{item_id}/", timeout=2) # Timeout pour éviter de bloquer
+        response.raise_for_status()
         return response.json()
-    raise HTTPException(status_code=404, detail="Produit non trouvé")
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=503, detail="Le service Catalogue est indisponible")
 
 @app.post("/commander")
 def place_order(product_id: int, quantity: int):
-    # La Gateway redirige vers les Commandes
-    data = {'product_id': product_id, 'quantity': quantity}
-    response = requests.post(ORDER_URL, data=data)
-    return response.json()
+    try:
+        data = {'product_id': product_id, 'quantity': quantity}
+        response = requests.post(ORDER_URL, data=data, timeout=5)
+        return response.json()
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=503, detail="Le service Commande est indisponible")
 
 if __name__ == "__main__":
     import uvicorn
